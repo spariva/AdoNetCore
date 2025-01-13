@@ -50,15 +50,33 @@ namespace AdoNetCore
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string sql = "DELETE FROM ENFERMO WHERE INSCRIPCION=" + this.textBox1.Text;
+            int inscripcion = int.Parse(this.textBox1.Text);
+            string sql = "DELETE FROM ENFERMO WHERE INSCRIPCION=@inscripcion";
+            SqlParameter pamInscripcion = new SqlParameter("@inscripcion", inscripcion);
+            //pamInscripcion.ParameterName = "@inscripcion";
+            //pamInscripcion.Value = inscripcion;
+            //pamInscripcion.Direction = ParameterDirection.Input;
+            this.com.Parameters.Add(pamInscripcion);
+
+
             this.com.Connection = this.cn;
             this.com.CommandType = CommandType.Text;
             this.com.CommandText = sql;
+
             this.cn.Open();
             int afectados = this.com.ExecuteNonQuery();
             this.cn.Close();
+
+            this.com.Parameters.Clear();
+
             MessageBox.Show("Filas afectadas: " + afectados);
             this.CargarPacientes();
+
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            MessageBox.Show(this.listBox1.SelectedItem.ToString());
         }
     }
 }
