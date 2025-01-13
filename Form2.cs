@@ -7,7 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Data.SqlClient;
+//using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace AdoNetCore
 {
@@ -21,7 +22,7 @@ namespace AdoNetCore
         public Form2()
         {
             InitializeComponent();
-            this.connectionString = @"Data Source=LOCALHOST\DESARROLLO;Initial Catalog=HOSPITAL;Persist Security Info=True;User ID=SA";
+            this.connectionString = @"Data Source=LOCALHOST\DESARROLLO;Initial Catalog=HOSPITAL;Persist Security Info=True;User ID=SA;Trust Server Certificate=True";
             this.cn = new SqlConnection(this.connectionString);
             this.com = new SqlCommand();
             this.cn.StateChange += Cn_StateChange;
@@ -63,7 +64,6 @@ namespace AdoNetCore
             this.com.CommandText = sql;
 
             this.reader = this.com.ExecuteReader();
-            this.reader.Read();
 
             for (int i = 0; i < this.reader.FieldCount; i++)
             {
