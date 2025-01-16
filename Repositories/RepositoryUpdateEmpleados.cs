@@ -107,10 +107,10 @@ namespace AdoNetCore.Repositories
             if (await this.reader.ReadAsync())
             {
                 int maximo = int.Parse(this.reader["MAXIMO"].ToString());
-                int mediaa = int.Parse(this.reader["MEDIA"].ToString());
+                int media = int.Parse(this.reader["MEDIA"].ToString());
                 int total = int.Parse(this.reader["TOTAL"].ToString());
                 datos.Add(maximo);
-                datos.Add(mediaa);
+                datos.Add(media);
                 datos.Add(total);
             }
             await this.reader.CloseAsync();
