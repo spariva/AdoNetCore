@@ -23,7 +23,7 @@ namespace AdoNetCore
             this.LoadOficios();
         }
 
-        private async void LoadOficios()
+        private async Task LoadOficios()
         {
             List<string> oficios = await this.repo.GetOficiosAsync();
             this.listBox2.Items.Clear();
@@ -43,7 +43,7 @@ namespace AdoNetCore
             }
         }
 
-        private async void LoadEmpleados(string oficio)
+        private async Task LoadEmpleados(string oficio)
         {
             List<string> empleados = await this.repo.GetEmpleadosOficioAsync(oficio);
             this.listBox2.Items.Clear();
@@ -59,17 +59,15 @@ namespace AdoNetCore
             int incremento = int.Parse(this.textBox1.Text);
             string oficio = this.listBox1.SelectedItem.ToString();
             string newOficio = this.textBox2.Text;
-            List<int> datos = await this.repo.UpdateSalarioEmpleadosOficio(oficio, incremento, newOficio);
+            DatosEmpleadosOficio datos = await this.repo.UpdateSalarioEmpleadosOficio(oficio, incremento, newOficio);
 
-            int max = datos[0];
-            int media = datos[1];
-            int total = datos[2];
-            int modificados = datos[3];
+            int max = datos.MaximoSalarial;
+            int media = datos.MediaSalarial;
+            int total = datos.SumaSalarial;
             this.label1.Text = "Max: " + max;
             this.label2.Text = "Media: " + media;
             this.label3.Text = "Total: " + total;
-            MessageBox.Show("Empleados modificados: " + modificados);
-            this.LoadOficios();
+            await LoadOficios();
         }
     }
 }

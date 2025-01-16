@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AdoNetCore.Models;
 using Microsoft.Data.SqlClient;
 
 namespace AdoNetCore.Repositories
@@ -77,7 +78,7 @@ namespace AdoNetCore.Repositories
             return afectados;
         }
 
-        public async Task<List<int>> UpdateSalarioEmpleadosOficio(string oficio, int incremento, string newOficio)
+        public async Task<DatosEmpleadosOficio> UpdateSalarioEmpleadosOficio(string oficio, int incremento, string newOficio)
         {
             int afectados = await UpdateSalarioEmpleadosOficio(oficio, incremento);
             string sql = "UPDATE EMP SET OFICIO=@newOficio WHERE OFICIO=@oficio";
@@ -90,29 +91,31 @@ namespace AdoNetCore.Repositories
             await this.reader.CloseAsync();
             await this.cn.CloseAsync();
             this.com.Parameters.Clear();
-            List<int> datos = await CalculateMaxAvgSumSalarios(newOficio);
-            datos.Add(afectados);
+            DatosEmpleadosOficio datos = await CalculateMaxAvgSumSalarios(newOficio);
             return datos;
         }
 
-        public async Task<List<int>> CalculateMaxAvgSumSalarios(string oficio)
+        public async Task<DatosEmpleadosOficio> CalculateMaxAvgSumSalarios(string oficio)
         {
-            string sql = "SELECT MAX(SALARIO) AS MAXIMO, AVG(SALARIO) AS MEDIA, SUM(SALARIO) AS TOTAL FROM EMP WHERE OFICIO=@oficio";
+            string sql = "SELECT MAX(SALARIO) AS MAXIMO, AVG(SALARIO) AS MEDIA, SUM(SALARIO) AS TOTAL FROM EMP WHERE OFICIO=@oficio  ";
             this.com.Parameters.AddWithValue("@oficio", oficio);
             this.com.CommandType = CommandType.Text;
             this.com.CommandText = sql;
             await this.cn.OpenAsync();
             this.reader = await this.com.ExecuteReaderAsync();
-            List<int> datos = new List<int>();
-            if (await this.reader.ReadAsync())
-            {
-                int maximo = int.Parse(this.reader["MAXIMO"].ToString());
-                int media = int.Parse(this.reader["MEDIA"].ToString());
-                int total = int.Parse(this.reader["TOTAL"].ToString());
-                datos.Add(maximo);
-                datos.Add(media);
-                datos.Add(total);
-            }
+            DatosEmpleadosOficio datos = new DatosEmpleadosOficio();
+            await this.reader.ReadAsync();
+            datos.MaximoSalarial = int.Parse(this.reader["MAXIMO"].ToString());
+            datos.MediaSalarial = int.Parse(this.reader["MEDIA"].ToString());
+            datos.SumaSalarial = int.Parse(this.reader["TOTAL"].ToString());
+
+            //List<int> datos = new List<int>();
+            //if (await this.reader.ReadAsync())
+            //{
+            //    int maximo = int.Parse(this.reader["MAXIMO"].ToString());
+            //    int media = int.Parse(this.reader["MEDIA"].ToString());
+            //    int total = int.Parse(this.reader["TOTAL"].ToString());
+            //}
             await this.reader.CloseAsync();
             await this.cn.CloseAsync();
             this.com.Parameters.Clear();
