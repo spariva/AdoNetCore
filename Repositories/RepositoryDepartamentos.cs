@@ -50,6 +50,31 @@ namespace AdoNetCore.Repositories
             return departamentos;
         }
 
+        public async Task<List<Departamento>> GetDepartamentosSpAsync()
+        {
+            string sql = "SP_ALL_DEPARTAMENTOS";
+            this.com.Connection = this.cn;
+            this.com.CommandType = CommandType.StoredProcedure;
+            this.com.CommandText = sql;
+            await this.cn.OpenAsync();
+            this.reader = await this.com.ExecuteReaderAsync();
+            List<Departamento> departamentos = new List<Departamento>();
+            while (await this.reader.ReadAsync())
+            {
+                int id = int.Parse(this.reader["DEPT_NO"].ToString());
+                string nombre = this.reader["DNOMBRE"].ToString();
+                string localidad = this.reader["LOC"].ToString();
+                Departamento dept = new Departamento();
+                dept.IdDepartamento = id;
+                dept.Nombre = nombre;
+                dept.Localidad = localidad;
+                departamentos.Add(dept);
+            }
+            await this.reader.CloseAsync();
+            await this.cn.CloseAsync();
+            return departamentos;
+        }
+
         public async Task InsertDepartamentoAsync(int id, string nombre, string localidad)
         {
             string sql = "insert into DEPT values (@id, @nombre, @localidad)";
