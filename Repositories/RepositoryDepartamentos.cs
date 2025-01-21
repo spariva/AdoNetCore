@@ -17,7 +17,7 @@ namespace AdoNetCore.Repositories
 
         public RepositoryDepartamentos()
         {
-            string connectionString = @"Data Source=LOCALHOST\SQLEXPRESS;Initial Catalog=HOSPITAL;Persist Security Info=True;User ID=SA; Trust Server Certificate=True";
+            string connectionString = @"Data Source=LOCALHOST\DESARROLLO;Initial Catalog=HOSPITAL;Persist Security Info=True;User ID=SA; Trust Server Certificate=True";
             this.cn = new SqlConnection(connectionString);
             this.com = new SqlCommand();
             this.com.Connection = this.cn;
@@ -50,29 +50,82 @@ namespace AdoNetCore.Repositories
             return departamentos;
         }
 
-        public async Task<List<Departamento>> GetDepartamentosSpAsync()
+        public async Task<List<string>> GetDepartamentosSpAsync()
         {
             string sql = "SP_ALL_DEPARTAMENTOS";
             this.com.Connection = this.cn;
             this.com.CommandType = CommandType.StoredProcedure;
             this.com.CommandText = sql;
+
             await this.cn.OpenAsync();
             this.reader = await this.com.ExecuteReaderAsync();
-            List<Departamento> departamentos = new List<Departamento>();
+
+            List<string> departamentos = new List<string>();
+
             while (await this.reader.ReadAsync())
             {
-                int id = int.Parse(this.reader["DEPT_NO"].ToString());
                 string nombre = this.reader["DNOMBRE"].ToString();
-                string localidad = this.reader["LOC"].ToString();
-                Departamento dept = new Departamento();
-                dept.IdDepartamento = id;
-                dept.Nombre = nombre;
-                dept.Localidad = localidad;
-                departamentos.Add(dept);
+                departamentos.Add(nombre);
             }
             await this.reader.CloseAsync();
             await this.cn.CloseAsync();
+
             return departamentos;
+        }
+
+        public async Task<EmpleadoDeptInfo> GetEmpleadosSpOut(string dep)
+        {
+            string sql = "SP_EMPLEADOS_DEPT_OUT";
+            this.com.Parameters.AddWithValue("@nombre", dep);
+
+            SqlParameter pamSuma = new SqlParameter();
+            pamSuma.ParameterName = "@suma";
+            pamSuma.Value = 0;
+            pamSuma.Direction = ParameterDirection.Output;
+            this.com.Parameters.Add(pamSuma);
+
+            SqlParameter pamMedia = new SqlParameter();
+            pamMedia.ParameterName = "@media";
+            pamMedia.Value = 0;
+            pamMedia.Direction = ParameterDirection.Output;
+            this.com.Parameters.Add(pamMedia);
+
+            SqlParameter pamPersonas = new SqlParameter();
+            pamPersonas.ParameterName = "@personas";
+            pamPersonas.Value = 0;
+            pamPersonas.Direction = ParameterDirection.Output;
+            this.com.Parameters.Add(pamPersonas);
+
+            this.com.CommandType = CommandType.StoredProcedure;
+            this.com.CommandText = sql;
+
+            await this.cn.OpenAsync();
+            this.reader = await this.com.ExecuteReaderAsync();
+
+            List<string> empleados = new List<string>();
+
+            while (await this.reader.ReadAsync())
+            {
+                string apellido = this.reader["APELLIDO"].ToString();
+                empleados.Add(apellido);
+            }
+
+            await this.reader.CloseAsync();
+
+            decimal sumaSalarial = Convert.ToDecimal(this.com.Parameters["@suma"].Value);
+            decimal mediaSalarial = Convert.ToDecimal(this.com.Parameters["@media"].Value);
+            int cantidadPersonas = Convert.ToInt32(this.com.Parameters["@personas"].Value);
+
+            await this.cn.CloseAsync();
+            this.com.Parameters.Clear();
+
+            return new EmpleadoDeptInfo
+            {
+                Empleados = empleados,
+                SumaSalarial = sumaSalarial,
+                MediaSalarial = mediaSalarial,
+                Personas = cantidadPersonas
+            };
         }
 
         public async Task InsertDepartamentoAsync(int id, string nombre, string localidad)
